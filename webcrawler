@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+
+import socket
+import re
+import sys
+import ssl
+
+def main(argv):
+    # Establish TSL connection
+    my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Default wrapper
+    wrap_socket = ssl.wrap_socket(my_socket)
+
+    # Get username and password from cmd line
+    username = sys.argv[1]
+    password = sys.argv[2]
+
+    # Host and port information for secure connection
+    host =  "project2.5700.network"
+    port = 443
+
+    # Connect with server
+    wrap_socket.connect((host, port))
+
+    # Send a GET request to the login browser to get the HTML content
+    msg_get_html = "GET /accounts/login/ HTTP/1.1\nHost: project2.5700.network\r\n\r\n"
+    wrap_socket.sendall(msg_get_html.encode())
+    login_page = wrap_socket.recv(16384)
+    login_page = login_page.decode()
+    #print(login_page)
+
+    csrf_token_position = login_page.find('csrfmiddlewaretoken')	# Find the initial position of csrfmiddlewaretoken
+    csrf_token = login_page.find('value', csrf_token_position + 1)	# Find the position of field value
+    csrf_value = login_page[csrf_token + 7 : csrf_token + 71]		# Extract the actual value of the csrf token
+    #print(csrf_value)
+
+    # Send the HTTP Post message by specifying the required headers and pass in body content
+    wrap_socket.sendall(("POST /accounts/login/ HTTP/1.1\nHost: project2.5700.network\nContent-Length: 150\nContent-Type: application/x-www-form-urlencoded\nCookie: csrftoken=" + csrf_value + "\r\n\r\nusername=" + username + "&password=" + password + "&csrfmiddlewaretoken="+csrf_value + "&next=%2Ffakebook%2F\r\n").encode())
+    successful_login_page = wrap_socket.recv(1000000)
+    successful_login_page = successful_login_page.decode()
+    print(successful_login_page)
+    position = successful_login_page.find("sessionid=")				# Find the sessionid in the response
+    session_id =  successful_login_page[position+10:position+266]
+    print(session_id)
+
+
+
+if __name__ == "__main__":
+    main(sys.argv[0])
+
+
+
+
+
+
+
+
