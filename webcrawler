@@ -5,6 +5,7 @@ import re
 import sys
 import ssl
 
+# Get the first link from the page
 def get_first_link(page):
     first_link = page.find('<a href=')
     if first_link == -1:
@@ -21,6 +22,7 @@ def crawler(my_socket, session_id, csrf_val, home_page):
     unvisited_URL = [home_page]
     secret_flag_count = 0
 
+    # Run until unvisited_URL is empty or we collected all 5 flags
     while unvisited_URL and secret_flag_count < 5:
         page = unvisited_URL.pop()
 
@@ -34,8 +36,10 @@ def crawler(my_socket, session_id, csrf_val, home_page):
                 space_pos = content.find(" ", start_pos + 1)
                 session_id =  content[start_pos+10:space_pos-1]
 
+            # Find using regex format
             status = re.findall(r"\D(\d{3})\D", content)
 
+            # Deals with each error separately
             if status[0] == '500' or status[0] == '503':
                 new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 new_wrap_socket = ssl.wrap_socket(new_socket)
@@ -63,12 +67,15 @@ def crawler(my_socket, session_id, csrf_val, home_page):
 
             if status[0] != '403' or status[0] != '404':
                 visited_URL.append(page)
+
+                # If flag found, print it
                 secret_flag_pos = content.find("FLAG")
                 if secret_flag_pos >= 0:
                     secret_flag = content[secret_flag_pos + 6: secret_flag_pos + 70]
                     secret_flag_count += 1
                     print(secret_flag)
 
+                # Find all links in a given page
                 found_links = []
                 while True:
                     retrieved_url, end_pos = get_first_link(content)
@@ -81,18 +88,6 @@ def crawler(my_socket, session_id, csrf_val, home_page):
                 for link in found_links:
                     if link not in visited_URL and link not in unvisited_URL:
                         unvisited_URL.append(link)
-
-                my_socket.close()
-                new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                new_wrap_socket = ssl.wrap_socket(new_socket)
-                my_socket = new_wrap_socket
-                try:
-                    my_socket.connect(("project2.5700.network", 443))
-                except ConnectionRefusedError:
-                    another_new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    another_new_wrap_socket = ssl.wrap_socket(another_new_socket)
-                    my_socket = another_new_wrap_socket
-                    my_socket.connect(("project2.5700.network", 443))
 
 
 def main(argv):
@@ -133,7 +128,6 @@ def main(argv):
     # Find the sessionid in the response
     session_id =  successful_login_page[start_pos+10:space_pos-1]
     crawler(wrap_socket, session_id, csrf_value, "/fakebook/")
-
 
 
 if __name__ == "__main__":
