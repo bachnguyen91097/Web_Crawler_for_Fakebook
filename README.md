@@ -1,2 +1,17 @@
 # Web_Crawler_for_Fakebook
 Build a web crawler to find hidden message in "popular" social media Fakebook
+
+High-level approach:
+For this project, I basically started by setting up the client and connect it with the provided server. Then
+,I figure out way to log into Fakebook site using GET and POST method written from scratch. The next and also most 
+time-consuming step is to write an algorithm for the web crawler to travel all sites on Fakebook (approximately 10k links)
+
+Challenges:
+- A major one is to figure out how to pass in appropriate session id in order to get all the page content.
+- How to handle all the status code return by the server
+- I encounter the ConnectionRefusedError which I have to handle using try/catch block
+
+Testing:
+- Can run the program with the proper command line (stop after retrieving 5 secret flags or not?)
+- Try a lot of different print functions just to see how the program supposed to run and debug with
+the receiving result.
