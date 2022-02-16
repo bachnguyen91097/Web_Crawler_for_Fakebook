@@ -21,7 +21,7 @@ def crawler(my_socket, session_id, csrf_val, home_page):
     unvisited_URL = [home_page]
     secret_flag_count = 0
 
-    while unvisited_URL and secret_flag_count < 6:
+    while unvisited_URL and secret_flag_count < 5:
         page = unvisited_URL.pop()
 
         if page not in visited_URL:
